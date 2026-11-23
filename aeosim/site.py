@@ -189,6 +189,13 @@ def render_site(firm: Firm, features: dict) -> list[Resource]:
     return out
 
 
+def plural(noun_phrase: str) -> str:
+    """'freight trucking company' -> 'freight trucking companies'."""
+    if noun_phrase.endswith("y") and noun_phrase[-2:-1] not in "aeiou":
+        return noun_phrase[:-1] + "ies"
+    return noun_phrase + "s"
+
+
 def directory_domain(category: str) -> str:
     return {"freight_trucking": "freightfinderdirectory.example",
             "contract_packaging": "packagersdirectory.example"}.get(category, f"{category}directory.example")
@@ -207,8 +214,8 @@ def render_directory(category: str, listed: list[Firm]) -> list[Resource]:
             f"Services: {_esc(', '.join(cat['services'][s]['label'] for s in x.services))}.</li>"
             for x in firms
         )
-        title = f"Top {cat['label']}s in the {region} | Directory"
-        desc = f"Compare {len(firms)} {cat['label']}s serving the {region}: services, locations and contact links."
+        title = f"Top {plural(cat['label'])} in the {region} | Directory"
+        desc = f"Compare {len(firms)} {plural(cat['label'])} serving the {region}: services, locations and contact links."
         page = (f"<html><head><title>{_esc(title)}</title><meta name='description' content='{_esc(desc)}'></head><body><nav>Home | Browse | Add your business</nav>"
                 f"<main><h1>{_esc(title)}</h1><ul>{rows}</ul></main></body></html>")
         url = f"https://{dom}/{region.lower()}"
