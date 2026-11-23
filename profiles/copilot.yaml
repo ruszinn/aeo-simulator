@@ -14,6 +14,5 @@ search:
   results_per_query: 10
   max_query_words: 6
 agent:
-  mode: search
   max_searches: 3
   max_fetches: 3

@@ -13,6 +13,5 @@ web:
 search:
   results_per_query: 10
 agent:
-  mode: search
   max_searches: 5
   max_fetches: 5

@@ -129,3 +129,9 @@ def test_fact_guard_catches_invented_claims():
     assert any("ISO 9001" in x for x in found) == ("iso9001" not in f.certifications)
     assert any("flatbed" in x for x in found) == ("flatbed" not in f.services)
     assert fact_violations(f, f.copy) == []
+
+
+def test_profiles_keep_the_configs_agent_mode(cfg):
+    cfg["agent"]["mode"] = "forced_exposure"
+    for name in ["chatgpt_thinking", "chatgpt_instant", "gemini", "claude", "copilot"]:
+        assert apply_profile(cfg, name)["agent"]["mode"] == "forced_exposure"

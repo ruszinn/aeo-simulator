@@ -64,13 +64,16 @@ def load_profile(name: str, base: str) -> dict:
 
 def apply_profile(cfg: dict, name: str | None) -> dict:
     """A copy of cfg with a platform profile's web, search and agent settings
-    laid over the config's own blocks. The profile wins on any key it sets."""
+    laid over the config's own blocks. The profile wins on any key it sets.
+    The agent mode (search or forced exposure) is an experiment design choice,
+    so it always comes from the config."""
     out = copy.deepcopy(cfg)
     out["profile"] = name
     if name:
         prof = load_profile(name, cfg["_base"])
         for block in ("web", "search", "agent"):
             out[block] = {**out[block], **prof.get(block, {})}
+        out["agent"]["mode"] = cfg["agent"].get("mode", "search")
     return out
 
 
