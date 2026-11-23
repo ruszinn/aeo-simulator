@@ -135,3 +135,15 @@ def test_profiles_keep_the_configs_agent_mode(cfg):
     cfg["agent"]["mode"] = "forced_exposure"
     for name in ["chatgpt_thinking", "chatgpt_instant", "gemini", "claude", "copilot"]:
         assert apply_profile(cfg, name)["agent"]["mode"] == "forced_exposure"
+
+
+def test_replay_and_summary_read_a_run(cfg):
+    from aeosim.present import pick_episode, replay, resolve_run, summary
+    out = run_experiment(cfg)
+    run = resolve_run(out.parent.parent)
+    assert run == out.parent
+    ep = pick_episode(load_episodes(out), scenario=1, model="keyword", profile="chatgpt_thinking")
+    text = replay(ep)
+    assert ep["brief"]["text"] in text and "FINAL SHORTLIST" in text and "STEP 1" in text
+    s = summary(run)
+    assert "JavaScript-only site" in s and "Keyword baseline · chatgpt_instant" in s

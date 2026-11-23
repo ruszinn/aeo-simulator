@@ -62,5 +62,5 @@ def run_baseline(ep: Episode) -> tuple[dict, int, None, None]:
     ranked = sorted((fid for fid in order if scores[fid] > 0), key=lambda fid: (-scores[fid], order.index(fid)))
     firms = {f.firm_id: f for f in ep.scenario.firms}
     ep.recommend([{"company_name": firms[fid].name, "website": f"https://{firms[fid].domain}/",
-                   "reason": f"matched {scores[fid]:g} brief terms"} for fid in ranked[: ep.k]])
+                   "reason": f"matched {scores[fid]:g} brief term{'' if scores[fid] == 1 else 's'}"} for fid in ranked[: ep.k]])
     return {"input_tokens": 0, "output_tokens": 0}, len(queries) + len(order), None, None

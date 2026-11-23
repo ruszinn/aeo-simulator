@@ -72,7 +72,7 @@ git clone https://github.com/ruszinn/aeo-simulator.git ~/code/aeo-simulator
 cd ~/code/aeo-simulator
 uv sync --extra dev --extra anthropic   # exact package versions from uv.lock, into .venv/
 cp .env.sample .env                     # then paste your API keys into .env
-uv run pytest -q                        # 21 tests, about 10 seconds
+uv run pytest -q                        # 23 tests, about 10 seconds
 ```
 
 `uv sync` reads `uv.lock`, the file that pins the exact version of every package, so every co-author gets the same environment. Add `--extra openai` or `--extra google` for other providers. Prefix commands with `uv run` (or activate `.venv`).
@@ -84,7 +84,11 @@ uv run python -m aeosim preview configs/pilot.yaml --scenario 3   # one scenario
 uv run python -m aeosim run configs/pilot.yaml                    # 40 scenarios x 2 offline agents x 2 profiles
 uv run python -m aeosim analyze runs/pilot/<commit>               # the run command prints this path
 uv run python -m aeosim serve configs/pilot.yaml --scenario 3     # browse the mock web at localhost:8000
+uv run python -m aeosim replay runs/pilot --scenario 3            # one episode as a plain-language story
+uv run python -m aeosim summary runs/pilot                         # results in plain English
 ```
+
+`replay` and `summary` take an experiment folder (they use its latest run) or a specific run folder. `replay` picks a real-LLM episode when one exists; filter with `--model`, `--profile` and `--scenario`.
 
 The pilot uses two offline agents. `Keyword baseline` ranks firms by how many of the brief's key terms appear in snippets and pages it read. `Scripted LLM (test)` is a fake chat model that drives the real LLM tool-calling loop. Both cost nothing and check the whole pipeline first.
 
@@ -158,6 +162,7 @@ aeosim/
   agents/         episode tools, modes and limits; LLM loop; keyword baseline; scripted test model
   runner.py       parallel, resumable runner over models x profiles, with a token budget
   analysis.py     panel, funnel, first-version choice models
+  present.py      plain-language replay of one episode and results summary
   provenance.py   links each run folder to its Git commit
   seller.py       paired seller experiment and the rewrite fact check
   validation.py   brief export and live-site feature audit
@@ -184,7 +189,7 @@ uv.lock           exact package versions
 
 ## Status
 
-Tested here with the offline agents: every module end to end, 21 passing tests, and offline runs of every profile and mode. Tool schemas and prompt-caching markers format correctly for the Anthropic and OpenAI LangChain clients.
+Tested here with the offline agents: every module end to end, 23 passing tests, and offline runs of every profile and mode. Tool schemas and prompt-caching markers format correctly for the Anthropic and OpenAI LangChain clients.
 
 Still to verify on a machine with API keys and open internet: live LLM episodes, the `hybrid` search method (downloads an embedding model), `llm_rewrite`, and `audit` against real sites.
 
