@@ -28,6 +28,7 @@ dependencies = [
     { name = "flask" },
     { name = "langchain" },
     { name = "langchain-core" },
+    { name = "markdownify" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pandas" },
@@ -61,6 +62,7 @@ requires-dist = [
     { name = "langchain-core", specifier = ">=0.3" },
     { name = "langchain-google-genai", marker = "extra == 'google'" },
     { name = "langchain-openai", marker = "extra == 'openai'" },
+    { name = "markdownify", specifier = ">=0.13" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", specifier = ">=2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
@@ -1191,6 +1193,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/16/fc/cee2c45553c9a9bf77d8b0c391560c556d7ed756b1f0bb35eb5d48db09ea/markdown_it_py-4.3.0.tar.gz", hash = "sha256:91a58fa5b72c71a40cf7177250fd767480d7a2bb3ac426ccfb76fb90305fdaaa", size = 242701, upload-time = "2026-11-10T16:18:30.467Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c9/31/5f0ac2f1a1c67423c995c731a11cd4ad05d081a2be969d74f868bdb9cc70/markdown_it_py-4.3.0-py3-none-any.whl", hash = "sha256:7aa1511a46c39138de78d9eba92ce47e63124d8003fc98b3a351909e04239efa", size = 96951, upload-time = "2026-11-10T16:18:28.975Z" },
+]
+
+[[package]]
+name = "markdownify"
+version = "1.2.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "beautifulsoup4" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/98/29/5e46d8d7aa6c66c73809c0018a435b3271d01fa0f54f8215d634a6a92051/markdownify-1.2.4.tar.gz", hash = "sha256:3837f5eb4caa627473451f9ebb91e00d0f12120fc64d64246bea23934244bd01", size = 19301, upload-time = "2026-11-18T18:17:09.378Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/df/37/9905803c2df99e10c69df1b0ecaad16a559d51cec20e2929006975d1bedc/markdownify-1.2.4-py3-none-any.whl", hash = "sha256:e0375484fdd2bb007e86779fe34c59673d0011b14f8299953aaf0bf092269220", size = 15852, upload-time = "2026-11-18T18:17:08.216Z" },
 ]
 
 [[package]]

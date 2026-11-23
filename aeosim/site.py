@@ -143,7 +143,7 @@ def render_site(firm: Firm, features: dict) -> list[Resource]:
     )
     contact_body = (
         f"<h1>Contact {_esc(firm.name)}</h1><p>{_esc(firm.city)}, {_esc(firm.state)}</p>"
-        f"<p>Service area: {_esc(f['areas'])}</p><p>Phone: (555) 01{firm.firm_id[-2:]}-0000</p>"
+        f"<p>Service area: {_esc(f['areas'])}</p><p>Phone: (555) 555-{int(firm.firm_id.split('_')[1]):04d}</p>"
         f"<p>Email: quotes@{firm.domain}</p>"
     )
     pages = [("/", f"{firm.name} | {c['tagline']}", home_body),

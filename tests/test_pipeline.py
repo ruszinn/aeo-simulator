@@ -90,7 +90,7 @@ def test_run_resume_and_analyze(cfg):
     out = run_experiment(cfg)
     n1 = len(out.read_text().splitlines())
     run_experiment(cfg)  # second call skips finished episodes
-    assert len(out.read_text().splitlines()) == n1 == 12
+    assert len(out.read_text().splitlines()) == n1 == 24  # 2 models x 2 profiles x 6 scenarios
     report = analyze(out.parent).read_text()
     assert "Funnel by feature" in report
 

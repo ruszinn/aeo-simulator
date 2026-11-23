@@ -1,4 +1,0 @@
-provider: openai             # needs: pip install langchain-openai ; OPENAI_API_KEY
-model: gpt-5.1
-display_name: GPT-5.1
-temperature: 1.0

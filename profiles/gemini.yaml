@@ -1,0 +1,18 @@
+# Gemini and Google AI Mode. Google's crawler renders JavaScript (Vercel crawler study),
+# and AI Mode fans a question out into several searches (Google). Snippet source and
+# fetch format are undocumented; meta-description snippets follow classic Google results.
+description: Gemini / Google AI Mode (renders JavaScript; fans out)
+web:
+  crawler_renders_js: true
+  crawler_reads_llms_txt: false
+  crawler_reads_jsonld: true
+  snippet_source: meta
+  fetcher: markdown_convert
+  fetcher_renders_js: true
+  fetcher_keeps_jsonld: false
+search:
+  results_per_query: 10
+agent:
+  mode: search
+  max_searches: 5
+  max_fetches: 5

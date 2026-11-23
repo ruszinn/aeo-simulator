@@ -1,4 +1,0 @@
-provider: google_genai       # needs: pip install langchain-google-genai ; GOOGLE_API_KEY
-model: gemini-2.5-flash
-display_name: Gemini 2.5 Flash
-temperature: 1.0

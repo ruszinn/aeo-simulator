@@ -1,0 +1,25 @@
+# Main experiment: models x pipelines on the same 500 scenarios.
+# Agents search the mock web themselves, so results cover both stages:
+# getting found (retrieval) and getting picked (selection).
+# Start with the keyword baseline to check the run, then switch on the LLMs.
+experiment:
+  name: main
+  category: freight_trucking
+  n_scenarios: 500
+  seed: 11
+  corpus_seed: 1
+features: {markdown: 0.5, llms_txt: 0.5, schema_jsonld: 0.5, js_rendered: 0.3, faq_page: 0.5,
+           directory_listing: 0.5, descriptive_heading: 0.5}
+profiles:
+  - chatgpt_thinking             # crawler skips JavaScript; snippets from the main heading
+  - gemini                       # crawler renders JavaScript
+models:
+  - models/baseline.yaml
+  # - models/claude-sonnet-5-5.yaml
+  # - models/gpt-6-2-sol.yaml
+  # - models/gemini-3-7-flash.yaml
+budget:                          # the run stops starting new episodes past either cap
+  max_input_tokens: 30000000
+  max_output_tokens: 3000000
+max_workers: 4
+output_dir: runs

@@ -1,0 +1,6 @@
+# Google. Needs: pip install langchain-google-genai ; GOOGLE_API_KEY
+# Model IDs checked Nov 2026 (gemini-3.7-flash stable; gemini-3.1-pro-preview for Pro).
+provider: google_genai
+model: gemini-3.7-flash
+display_name: Gemini 3.7 Flash
+temperature: 1.0

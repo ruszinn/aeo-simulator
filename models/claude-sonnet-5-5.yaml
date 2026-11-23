@@ -1,0 +1,9 @@
+# Anthropic. Needs: pip install langchain-anthropic ; ANTHROPIC_API_KEY
+# Model IDs checked Nov 2026. Each episode logs the exact version the API reports.
+provider: anthropic
+model: claude-sonnet-5-5
+display_name: Claude Sonnet 5.5
+temperature: 1.0
+prompt_cache: true          # caches the repeated conversation prefix at a discount
+kwargs:
+  max_tokens: 2048

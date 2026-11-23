@@ -11,7 +11,9 @@ Strategies:
   keyword_enrich  offline rewrite: work the brief-relevant service terms and
                   service areas into the copy (tests the rewrite path for free)
   llm_rewrite     an LLM rewrites the copy to win AI recommendations, constrained
-                  to the fact sheet; rewrites are cached per firm in the run folder
+                  to the fact sheet; a rewrite that claims a certification or
+                  service the firm lacks is retried once, then rejected; rewrites
+                  and their checks are cached per firm in the run folder
 """
 
 from __future__ import annotations
@@ -29,7 +31,7 @@ from .categories import CATEGORIES
 from .config import load_model
 from .market import Firm, cap, generate_pool
 from .provenance import run_dir_for
-from .runner import run_experiment
+from .runner import job, run_experiment
 from .scenario import build_scenario
 
 CHECKLIST = {"markdown": True, "llms_txt": True, "schema_jsonld": True, "js_rendered": False, "faq_page": True,
@@ -70,21 +72,49 @@ def _facts(firm: Firm) -> str:
     }, indent=2)
 
 
-def llm_rewrite(firm: Firm, model_cfg: dict) -> Firm:
+def fact_violations(firm: Firm, copy: dict) -> list[str]:
+    """Claims in rewritten copy that the fact sheet does not support: a
+    certification the firm lacks, or a service it does not offer."""
+    cat = CATEGORIES[firm.category]
+    text = json.dumps(copy).lower()
+    found = []
+    for key, cert in cat["certifications"].items():
+        if key not in firm.certifications:
+            found += [f"certification: {t}" for t in [cert["label"]] + cert["terms"][:1] if t.lower() in text]
+    for key, svc in cat["services"].items():
+        if key not in firm.services and svc["label"].lower() in text:
+            found.append(f"service: {svc['label']}")
+    return found
+
+
+def llm_rewrite(firm: Firm, model_cfg: dict, attempts: int = 2) -> tuple[Firm, dict]:
+    """Rewrite the firm's copy with an LLM. A rewrite that claims facts outside
+    the fact sheet is retried once, then rejected in favor of the original."""
     from .agents.llm import make_chat_model
     llm = make_chat_model(model_cfg)
     prompt = REWRITE_PROMPT.format(provider=CATEGORIES[firm.category]["provider_noun"],
                                    facts=_facts(firm), copy=json.dumps(firm.copy, indent=2))
-    text = llm.invoke(prompt).content
-    text = text if isinstance(text, str) else str(text)
-    m = re.search(r"\{.*\}", text, re.S)
-    data = json.loads(m.group(0))
-    new = firm.clone()
-    new.copy["tagline"] = data.get("tagline", firm.copy["tagline"])
-    new.copy["about"] = data.get("about", firm.copy["about"])
-    new.copy["service_blurbs"] = {s: data.get("service_blurbs", {}).get(s, firm.copy["service_blurbs"][s]) for s in firm.services}
-    new.copy["faq"] = data.get("faq", firm.copy["faq"])
-    return new
+    log = {"attempts": []}
+    for _ in range(attempts):
+        text = llm.invoke(prompt).content
+        text = text if isinstance(text, str) else str(text)
+        m = re.search(r"\{.*\}", text, re.S)
+        try:
+            data = json.loads(m.group(0)) if m else {}
+        except json.JSONDecodeError:
+            data = {}
+        new = firm.clone()
+        new.copy["tagline"] = data.get("tagline", firm.copy["tagline"])
+        new.copy["about"] = data.get("about", firm.copy["about"])
+        new.copy["service_blurbs"] = {s: data.get("service_blurbs", {}).get(s, firm.copy["service_blurbs"][s]) for s in firm.services}
+        new.copy["faq"] = data.get("faq", firm.copy["faq"])
+        bad = fact_violations(firm, new.copy) if data else ["unparseable response"]
+        log["attempts"].append(bad)
+        if not bad:
+            log["accepted"] = True
+            return new, log
+    log["accepted"] = False
+    return firm.clone(), log
 
 
 def run_seller(cfg: dict, limit: int | None = None) -> Path:
@@ -115,14 +145,16 @@ def run_seller(cfg: dict, limit: int | None = None) -> Path:
             fo = {fid: keyword_enrich(by_id[fid])}
         elif strategy == "llm_rewrite":
             if fid not in cache:
-                cache[fid] = llm_rewrite(by_id[fid], rewriter).copy
+                rewritten, log = llm_rewrite(by_id[fid], rewriter)
+                cache[fid] = {"copy": rewritten.copy, "check": log}
                 cache_path.write_text(json.dumps(cache, indent=2))
             new = by_id[fid].clone()
-            new.copy = cache[fid]
+            new.copy = cache[fid]["copy"]
             fo = {fid: new}
-        for m in models:
-            jobs.append((m, i, None, None, "before"))
-            jobs.append((m, i, fo, feo, f"after:{strategy}"))
+        for p in cfg["profiles"]:
+            for m in models:
+                jobs.append(job(m, i, p, tag="before"))
+                jobs.append(job(m, i, p, fo, feo, f"after:{strategy}"))
     (run_dir / "seller_focal.json").write_text(json.dumps(focal))
     run_experiment(cfg, limit=limit, out_name="seller_episodes.jsonl", jobs=jobs)
     return seller_report(run_dir)
@@ -137,7 +169,8 @@ def seller_report(run_dir: Path) -> Path:
             continue
         fid = focal[e["scenario_id"]]
         recs = {r["firm_id"]: r["rank"] for r in e["recommendations"] if r.get("firm_id")}
-        rows.append({"model": e["model"], "scenario_id": e["scenario_id"], "arm": "after" if e["arm"] != "before" else "before",
+        label = e["model"] + (f" · {e['profile']}" if e.get("profile") else "")
+        rows.append({"model": label, "scenario_id": e["scenario_id"], "arm": "after" if e["arm"] != "before" else "before",
                      "recommended": int(fid in recs), "top_pick": int(recs.get(fid) == 1)})
     df = pd.DataFrame(rows)
     lines = [f"# Seller experiment: {run_dir.name}", ""]

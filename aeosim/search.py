@@ -9,6 +9,9 @@ mode:
   ranked    results in score order (use for retrieval experiments)
   shuffled  the same top results in random order (use for selection
             experiments, so position effects separate from content effects)
+max_query_words
+  cut each query to its first N words before searching (Copilot sends Bing a
+  short keyword query); None leaves queries whole
 """
 
 from __future__ import annotations
@@ -23,7 +26,7 @@ from .web import domain_of
 STOP = set("""a an and are as at be by for from has have i in is it its of on or our that the their them they this to
 we were what which who with you your can need needs looking near about who should recommend few""".split())
 
-DEFAULT_SEARCH = {"method": "bm25", "mode": "ranked", "results_per_query": 10, "max_per_domain": 2,
+DEFAULT_SEARCH = {"method": "bm25", "mode": "ranked", "results_per_query": 10, "max_per_domain": 2, "max_query_words": None,
                   "k1": 1.5, "b": 0.75, "title_weight": 2, "embedding_model": "all-MiniLM-L6-v2"}
 
 

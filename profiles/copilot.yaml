@@ -1,0 +1,19 @@
+# Microsoft Copilot. Microsoft documents that Copilot turns the prompt into a short
+# keyword query of a few words and sends it to Bing; here, queries are cut to six
+# words. Evidence on whether Bing's crawler runs JavaScript conflicts; kept off.
+description: Microsoft Copilot (Bing; short keyword queries)
+web:
+  crawler_renders_js: false
+  crawler_reads_llms_txt: false
+  crawler_reads_jsonld: true
+  snippet_source: meta
+  fetcher: markdown_convert
+  fetcher_renders_js: false
+  fetcher_keeps_jsonld: false
+search:
+  results_per_query: 10
+  max_query_words: 6
+agent:
+  mode: search
+  max_searches: 3
+  max_fetches: 3
