@@ -1,0 +1,17 @@
+# Runs the test suite on GitHub's machines for every push and pull request.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install locked dependencies
+        run: uv sync --locked --extra dev
+      - name: Run tests
+        run: uv run pytest -q

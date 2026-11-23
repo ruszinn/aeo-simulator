@@ -1,0 +1,47 @@
+# Pilot: small offline run to check the whole pipeline before paying for API calls.
+experiment:
+  name: pilot
+  category: freight_trucking     # or contract_packaging
+  n_scenarios: 40
+  seed: 7                        # scenario seed: same seed, same scenarios
+  corpus_seed: 1                 # firm pool seed: keep fixed across experiments
+  pool_size: 40                  # firms in the category
+  market_size: 12                # firms present in each scenario
+  min_full_fit: 2                # firms per scenario that fully match the brief
+  shortlist_size: 3              # firms the agent recommends
+
+features:                        # probability each switch is on, drawn per firm per scenario
+  markdown: 0.5
+  llms_txt: 0.5
+  schema_jsonld: 0.5
+  js_rendered: 0.3
+  faq_page: 0.5
+  directory_listing: 0.5
+
+web:
+  crawler_renders_js: false
+  crawler_reads_llms_txt: true
+  crawler_reads_jsonld: true
+  fetcher: prefer_markdown       # or html_text
+  fetcher_renders_js: false
+  fetcher_keeps_jsonld: false
+  max_fetch_chars: 6000
+
+search:
+  method: bm25                   # or hybrid (needs sentence-transformers)
+  mode: ranked                   # or shuffled
+  results_per_query: 10
+  max_per_domain: 2
+
+agent:
+  max_searches: 3
+  max_fetches: 5
+  max_steps: 14
+  save_transcripts: true
+
+models:
+  - models/baseline.yaml
+  - models/scripted.yaml
+
+max_workers: 4
+output_dir: runs

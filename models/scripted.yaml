@@ -1,0 +1,3 @@
+# Fake chat model that exercises the LLM tool-calling loop with no API key.
+provider: scripted
+display_name: Scripted LLM (test)

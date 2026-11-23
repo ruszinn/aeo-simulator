@@ -1,0 +1,6 @@
+provider: anthropic          # needs: pip install langchain-anthropic ; ANTHROPIC_API_KEY
+model: claude-sonnet-4-5
+display_name: Claude Sonnet 4.5
+temperature: 1.0
+kwargs:
+  max_tokens: 2048

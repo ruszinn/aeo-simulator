@@ -1,0 +1,8 @@
+# Azure OpenAI (e.g. through the AI Lab's Azure AI Foundry deployment).
+# needs: pip install langchain-openai ; AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, OPENAI_API_VERSION
+provider: azure_openai
+model: gpt-4.1               # the model behind your deployment
+display_name: GPT-4.1 (Azure)
+temperature: 1.0
+kwargs:
+  azure_deployment: your-deployment-name

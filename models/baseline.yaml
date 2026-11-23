@@ -1,0 +1,3 @@
+# Offline keyword agent. Free and deterministic; use it to test the pipeline.
+provider: baseline
+display_name: Keyword baseline
