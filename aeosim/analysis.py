@@ -7,7 +7,7 @@ Panel: one row per (episode, firm in that episode's market) with
   fetched           the agent read one of the firm's pages
   recommended       the firm made the shortlist
   top_pick          the firm was ranked first
-plus the six feature switches and the brief-fit controls.
+plus the seven feature switches and the brief-fit controls.
 
 Models: conditional logit, grouped by episode, so each firm is compared
 only with the other firms in the same scenario. Two stages:

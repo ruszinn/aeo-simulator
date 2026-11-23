@@ -23,6 +23,7 @@ DEFAULT_EXPERIMENT = {
 DEFAULT_FEATURES = {
     "markdown": 0.5, "llms_txt": 0.5, "schema_jsonld": 0.5,
     "js_rendered": 0.3, "faq_page": 0.5, "directory_listing": 0.5,
+    "descriptive_heading": 0.5,
 }
 DEFAULT_AGENT = {"max_searches": 3, "max_fetches": 5, "max_steps": 14, "save_transcripts": True}
 

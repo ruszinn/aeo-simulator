@@ -17,6 +17,7 @@ features:                        # probability each switch is on, drawn per firm
   js_rendered: 0.3
   faq_page: 0.5
   directory_listing: 0.5
+  descriptive_heading: 0.5
 
 web:
   crawler_renders_js: false

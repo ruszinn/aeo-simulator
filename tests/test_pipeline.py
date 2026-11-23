@@ -131,3 +131,14 @@ def test_dirty_repo_blocks_runs(cfg, tmp_path):
     cfg["_allow_dirty"] = True
     path, info = run_dir_for(cfg)
     assert path.name == "nogit" and info["commit"] is None
+
+
+def test_descriptive_heading_changes_h1_and_keeps_name():
+    firm = generate_pool("freight_trucking", 5, 1)[0]
+    base = {k: False for k in ["markdown", "llms_txt", "schema_jsonld", "js_rendered", "faq_page", "directory_listing"]}
+    off = MockWeb(render_site(firm, {**base, "descriptive_heading": False}), {"fetcher": "html_text"})
+    on = MockWeb(render_site(firm, {**base, "descriptive_heading": True}), {"fetcher": "html_text"})
+    off_text, on_text = off.fetch(firm.domain)["text"], on.fetch(firm.domain)["text"]
+    assert f"<h1>{firm.name}</h1>" in off.get(firm.domain).initial
+    assert f" in {firm.city}, {firm.state}" in on_text and firm.name in on_text
+    assert f" in {firm.city}, {firm.state}</h1>" in on.get(firm.domain).initial

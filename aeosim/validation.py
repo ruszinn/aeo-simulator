@@ -3,10 +3,11 @@
 1. `export_briefs` writes buyer briefs to paste into ChatGPT search,
    Perplexity, Gemini or Claude, plus a sheet for recording what each
    platform recommended.
-2. `audit_sites` visits real company websites and detects the same six
-   kinds of features the simulator toggles, so you can test whether the
+2. `audit_sites` visits real company websites and detects the same
+   kinds of features the simulator toggles (descriptive headings and directory
+   listings need a manual check), so you can test whether the
    firms real AI search recommends share the features the simulator says
-   should help. Directory listings need a manual check.
+   should help. The audit records each homepage's H1 text for the heading check.
 """
 
 from __future__ import annotations
@@ -51,6 +52,7 @@ def _get(url: str, timeout: int = 15) -> tuple[int, str, str]:
 
 def detect_features(home_html: str, llms_status: int, llms_body: str, md_status: int, md_body: str) -> dict:
     soup = BeautifulSoup(home_html, "html.parser")
+    h1 = soup.find("h1")
     scripts = soup.find_all("script")
     jsonld = any(s.get("type") == "application/ld+json" for s in scripts)
     for s in scripts:
@@ -66,6 +68,7 @@ def detect_features(home_html: str, llms_status: int, llms_body: str, md_status:
         "js_rendered": len(visible) < 300 and len(scripts) > 0,
         "faq_page": faq,
         "visible_chars": len(visible),
+        "h1_text": h1.get_text(" ", strip=True)[:120] if h1 else "",
     }
 
 

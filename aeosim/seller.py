@@ -6,7 +6,8 @@ Because both arms share seeds, any difference in the focal firm's
 recommendation rate comes from the change.
 
 Strategies:
-  aeo_checklist   switch on markdown, llms.txt, schema, FAQ; switch off JS rendering
+  aeo_checklist   switch on markdown, llms.txt, schema, FAQ, descriptive heading;
+                  switch off JS rendering
   keyword_enrich  offline rewrite: work the brief-relevant service terms and
                   service areas into the copy (tests the rewrite path for free)
   llm_rewrite     an LLM rewrites the copy to win AI recommendations, constrained
@@ -31,7 +32,8 @@ from .provenance import run_dir_for
 from .runner import run_experiment
 from .scenario import build_scenario
 
-CHECKLIST = {"markdown": True, "llms_txt": True, "schema_jsonld": True, "js_rendered": False, "faq_page": True}
+CHECKLIST = {"markdown": True, "llms_txt": True, "schema_jsonld": True, "js_rendered": False, "faq_page": True,
+             "descriptive_heading": True}
 
 REWRITE_PROMPT = """You write website copy for a small {provider}. Buyers increasingly ask AI assistants to find and recommend providers like this one. Rewrite the copy so an AI assistant reading the site can tell quickly and accurately what the company does, where, and for whom.
 

@@ -6,7 +6,7 @@ experiment:
   n_scenarios: 200
   seed: 21
   corpus_seed: 1
-features: {markdown: 0.5, llms_txt: 0.5, schema_jsonld: 0.5, js_rendered: 0.3, faq_page: 0.5, directory_listing: 0.5}
+features: {markdown: 0.5, llms_txt: 0.5, schema_jsonld: 0.5, js_rendered: 0.3, faq_page: 0.5, directory_listing: 0.5, descriptive_heading: 0.5}
 search: {mode: ranked}
 seller:
   strategy: aeo_checklist

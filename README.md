@@ -12,7 +12,7 @@ The design adapts ACES (Allouah, Besbes, Figueroa, Kanoria and Kumar, *What Is Y
 ```
 scenario generator  ->  buyer agent  ->  web_search  ->  mock search engine (BM25 / hybrid)
    (seeded brief,          (LLM or          fetch_page ->  mock web (fictional firm sites,
-    market, feature         baseline)       recommend       six AEO switches per firm)
+    market, feature         baseline)       recommend       seven AEO switches per firm)
     switches)                   |
                                 v
                      episodes.jsonl  ->  analysis: funnel + conditional logit per stage
@@ -30,6 +30,7 @@ scenario generator  ->  buyer agent  ->  web_search  ->  mock search engine (BM2
 | `js_rendered` | the first HTML a fetcher receives is an empty shell; a script fills in the content |
 | `faq_page` | `/faq.html` restating services, service areas and certifications |
 | `directory_listing` | the firm appears on a third-party directory site |
+| `descriptive_heading` | the main heading (H1) names the services and city ("Port drayage and refrigerated trucking in Chicago, Illinois"); off, it carries the firm's name |
 
 - **Crawler and fetcher policies** (`web:` in the config) set what the search engine indexes and what the agent reads. Real AI products differ here, so these are experiment settings. Example: with `fetcher: prefer_markdown` the agent reads `/index.md` whenever a site offers it, which also rescues JavaScript-only sites.
 
@@ -95,7 +96,7 @@ Compare the features of firms real AI search recommends with what the simulator 
 
 `runs/<name>/<commit>/analysis/` holds:
 
-- `panel.csv`: one row per firm per episode, with `surfaced`, `best_rank`, `seen`, `fetched`, `recommended`, `top_pick`, the six switches and the fit controls.
+- `panel.csv`: one row per firm per episode, with `surfaced`, `best_rank`, `seen`, `fetched`, `recommended`, `top_pick`, the seven switches and the fit controls.
 - `funnel.csv`: stage rates for each feature, off versus on, per model.
 - `clogit_*.csv` and `report.md`: conditional logit estimates. Each firm is compared only with the other firms in the same scenario. An odds ratio of 2.0 on `markdown` in the selection stage means a firm the agent saw was twice as likely (in odds) to make the shortlist when its site offered markdown, holding the other switches, the brief fit and the firm's own baseline fixed.
 
@@ -118,7 +119,7 @@ Add a service category by adding an entry to `aeosim/categories.py`.
 aeosim/
   categories.py   service categories, regions, certifications, buyer types
   market.py       fictional firms, website copy, buyer briefs, brief-fit scores
-  site.py         renders each firm's site with the six switches; directory site
+  site.py         renders each firm's site with the seven switches; directory site
   web.py          mock web: crawler view and fetcher view
   search.py       BM25 and hybrid search, ranked or shuffled
   scenario.py     seeded scenario generator with override hooks
