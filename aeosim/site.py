@@ -7,6 +7,9 @@ Features (all booleans):
   js_rendered        initial HTML is an empty shell; a script fills in the content
   faq_page           add /faq.html restating services, areas and certifications
   directory_listing  list the firm on the third-party directory site
+  descriptive_heading  the main heading (H1) names the services and city;
+                     off, it carries the firm's name. AI search snippets are
+                     anchored on the H1, so this is what a results list shows.
 
 Every page is stored twice: `initial` is the HTML a simple fetcher receives,
 `rendered` is the HTML after JavaScript runs. They differ only for js_rendered.
@@ -21,7 +24,8 @@ from dataclasses import dataclass
 from .categories import CATEGORIES
 from .market import Firm, cap
 
-FEATURES = ["markdown", "llms_txt", "schema_jsonld", "js_rendered", "faq_page", "directory_listing"]
+FEATURES = ["markdown", "llms_txt", "schema_jsonld", "js_rendered", "faq_page", "directory_listing",
+            "descriptive_heading"]
 
 NAV = ["Home", "About Us", "Services", "Industries", "Careers", "Blog", "Contact", "Request a Quote"]
 COOKIE = (
@@ -102,31 +106,44 @@ def _facts_lines(firm: Firm, cat: dict) -> dict:
     }
 
 
+def descriptive_heading(firm: Firm, cat: dict) -> str:
+    """Main heading that says what the firm does and where, e.g.
+    'Port drayage and refrigerated trucking in Chicago, Illinois'."""
+    labels = [cat["services"][s]["label"] for s in firm.services[:2]]
+    return f"{cap(' and '.join(labels))} in {firm.city}, {firm.state}"
+
+
 def render_site(firm: Firm, features: dict) -> list[Resource]:
     cat = CATEGORIES[firm.category]
     f = _facts_lines(firm, cat)
     c = firm.copy
     base = f"https://{firm.domain}"
     out: list[Resource] = []
+    if features.get("descriptive_heading"):
+        h1 = descriptive_heading(firm, cat)
+        brand = f"<p class='brand'>{_esc(firm.name)}</p>"
+        services_h1 = f"{cap(', '.join(f['services']))} services in {firm.city}, {firm.state}"
+    else:
+        h1, brand, services_h1 = firm.name, "", "Our services"
 
     cert_html = (
         "<section><h2>Certifications</h2><ul>" + "".join(f"<li>{_esc(x)}</li>" for x in f["certs"]) + "</ul></section>"
         if f["certs"] else ""
     )
     home_body = (
-        f"<h1>{_esc(firm.name)}</h1><p class='tagline'>{_esc(c['tagline'])}</p>"
+        f"<h1>{_esc(h1)}</h1>{brand}<p class='tagline'>{_esc(c['tagline'])}</p>"
         f"<section><h2>About us</h2><p>{_esc(c['about'])}</p></section>"
         "<section><h2>What we do</h2><ul>" + "".join(f"<li>{_esc(s)}</li>" for s in f["services"]) + "</ul></section>"
         + cert_html
         + f"<p>Located in {_esc(firm.city)}, {_esc(firm.state)}. <a href='/contact.html'>Contact us</a> for a quote.</p>"
     )
-    services_body = "<h1>Our services</h1>" + "".join(
+    services_body = f"<h1>{_esc(services_h1)}</h1>" + "".join(
         f"<section><h2>{_esc(cap(cat['services'][s]['label']))}</h2><p>{_esc(c['service_blurbs'].get(s, ''))}</p></section>"
         for s in firm.services
     )
     contact_body = (
         f"<h1>Contact {_esc(firm.name)}</h1><p>{_esc(firm.city)}, {_esc(firm.state)}</p>"
-        f"<p>Service area: {_esc(f['areas'])}</p><p>Phone: (555) 01{firm.firm_id[-2:]}-0000</p>"
+        f"<p>Service area: {_esc(f['areas'])}</p><p>Phone: (555) 555-{int(firm.firm_id.split('_')[1]):04d}</p>"
         f"<p>Email: quotes@{firm.domain}</p>"
     )
     pages = [("/", f"{firm.name} | {c['tagline']}", home_body),
@@ -143,7 +160,7 @@ def render_site(firm: Firm, features: dict) -> list[Resource]:
         out.append(Resource(base + path, "html", title, initial, rendered, firm.firm_id, "firm_page"))
 
     if features.get("markdown"):
-        md = [f"# {firm.name}", "", f"> {c['tagline']}", "", "## About", c["about"], "", "## Services"]
+        md = [f"# {h1}"] + ([firm.name] if brand else []) + ["", f"> {c['tagline']}", "", "## About", c["about"], "", "## Services"]
         for s in firm.services:
             md.append(f"### {cap(cat['services'][s]['label'])}")
             md.append(c["service_blurbs"].get(s, ""))
@@ -172,6 +189,13 @@ def render_site(firm: Firm, features: dict) -> list[Resource]:
     return out
 
 
+def plural(noun_phrase: str) -> str:
+    """'freight trucking company' -> 'freight trucking companies'."""
+    if noun_phrase.endswith("y") and noun_phrase[-2:-1] not in "aeiou":
+        return noun_phrase[:-1] + "ies"
+    return noun_phrase + "s"
+
+
 def directory_domain(category: str) -> str:
     return {"freight_trucking": "freightfinderdirectory.example",
             "contract_packaging": "packagersdirectory.example"}.get(category, f"{category}directory.example")
@@ -190,8 +214,8 @@ def render_directory(category: str, listed: list[Firm]) -> list[Resource]:
             f"Services: {_esc(', '.join(cat['services'][s]['label'] for s in x.services))}.</li>"
             for x in firms
         )
-        title = f"Top {cat['label']}s in the {region} | Directory"
-        desc = f"Compare {len(firms)} {cat['label']}s serving the {region}: services, locations and contact links."
+        title = f"Top {plural(cat['label'])} in the {region} | Directory"
+        desc = f"Compare {len(firms)} {plural(cat['label'])} serving the {region}: services, locations and contact links."
         page = (f"<html><head><title>{_esc(title)}</title><meta name='description' content='{_esc(desc)}'></head><body><nav>Home | Browse | Add your business</nav>"
                 f"<main><h1>{_esc(title)}</h1><ul>{rows}</ul></main></body></html>")
         url = f"https://{dom}/{region.lower()}"

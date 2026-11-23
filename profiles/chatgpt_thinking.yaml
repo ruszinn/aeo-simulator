@@ -1,0 +1,22 @@
+# ChatGPT, thinking mode. The best-documented pipeline; the simulator's defaults match it.
+# Evidence (Search Engine Land, 2026 study of ChatGPT's retrieval stack; Vercel crawler study):
+#   - crawlers run no JavaScript
+#   - result snippets start at the page's main heading (H1); meta descriptions ignored
+#   - pages are read as Markdown converted from HTML; scripts, frames and JSON-LD stripped
+#   - thinking mode opens pages live and pulls many results
+# Unmeasured: whether the index reads JSON-LD (kept on), whether menus are stripped (kept).
+description: ChatGPT thinking mode (searches and reads pages)
+web:
+  crawler_renders_js: false
+  crawler_reads_llms_txt: false
+  crawler_reads_jsonld: true
+  snippet_source: h1
+  fetcher: markdown_convert
+  fetcher_main_content: false
+  fetcher_renders_js: false
+  fetcher_keeps_jsonld: false
+search:
+  results_per_query: 10
+agent:
+  max_searches: 5
+  max_fetches: 5

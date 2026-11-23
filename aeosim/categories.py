@@ -116,7 +116,7 @@ CATEGORIES = {
             "co_packing_food": {
                 "label": "food co-packing",
                 "terms": ["co-packing", "co-packer", "food packaging", "copacking"],
-                "buyer_need": "a co-packer for a snack product",
+                "buyer_need": "co-packing for a new snack product",
             },
             "blister": {
                 "label": "blister and clamshell packaging",

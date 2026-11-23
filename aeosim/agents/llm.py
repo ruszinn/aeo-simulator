@@ -78,6 +78,22 @@ def _invoke_with_retry(llm, messages, tries: int = 5):
             time.sleep(min(60, 2 ** attempt * 3))
 
 
+def _cache_marked(messages: list, provider: str | None) -> list:
+    """Anthropic prompt caching: mark the system prompt and the newest message
+    as cache breakpoints, so each step re-reads the shared conversation prefix
+    from cache at a discount. Other providers get the messages unchanged
+    (OpenAI caches long prompts automatically)."""
+    if provider != "anthropic":
+        return messages
+    out = list(messages)
+    for i in {0, len(out) - 1}:
+        m = out[i]
+        if isinstance(m.content, str) and m.content:
+            block = {"type": "text", "text": m.content, "cache_control": {"type": "ephemeral"}}
+            out[i] = m.model_copy(update={"content": [block]})
+    return out
+
+
 def _msg_record(m) -> dict:
     rec = {"role": m.type, "content": m.content if isinstance(m.content, str) else str(m.content)}
     if getattr(m, "tool_calls", None):
@@ -86,16 +102,25 @@ def _msg_record(m) -> dict:
 
 
 def run_llm(ep: Episode, model_cfg: dict, chat_model=None) -> tuple[dict, int, str | None, list | None]:
-    llm = (chat_model or make_chat_model(model_cfg)).bind_tools(TOOL_SCHEMAS)
-    messages = [SystemMessage(ep.system_prompt), HumanMessage(ep.scenario.brief.text)]
-    usage = {"input_tokens": 0, "output_tokens": 0}
+    tools = [t for t in TOOL_SCHEMAS if t["name"] in ep.tool_names]
+    llm = (chat_model or make_chat_model(model_cfg)).bind_tools(tools)
+    messages = [SystemMessage(ep.system_prompt), HumanMessage(ep.first_message)]
+    usage = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0, "cache_write_tokens": 0,
+             "model_version": None}
+    cache = model_cfg.get("prompt_cache", True)
+    provider = model_cfg.get("provider") if cache else None
     nudges, steps = 0, 0
     for steps in range(1, ep.limits["max_steps"] + 1):
-        ai = _invoke_with_retry(llm, messages)
+        ai = _invoke_with_retry(llm, _cache_marked(messages, provider))
         messages.append(ai)
         meta = getattr(ai, "usage_metadata", None) or {}
         usage["input_tokens"] += meta.get("input_tokens", 0)
         usage["output_tokens"] += meta.get("output_tokens", 0)
+        details = meta.get("input_token_details") or {}
+        usage["cache_read_tokens"] += details.get("cache_read", 0) or 0
+        usage["cache_write_tokens"] += details.get("cache_creation", 0) or 0
+        rmeta = getattr(ai, "response_metadata", None) or {}
+        usage["model_version"] = usage["model_version"] or rmeta.get("model_name") or rmeta.get("model")
         if not ai.tool_calls:
             if nudges >= 2:
                 break
@@ -104,7 +129,9 @@ def run_llm(ep: Episode, model_cfg: dict, chat_model=None) -> tuple[dict, int, s
             continue
         for tc in ai.tool_calls:
             name, args = tc["name"], tc["args"]
-            if name == "web_search":
+            if name not in ep.tool_names:
+                out = f"The tool {name} is unavailable here. Use: {', '.join(ep.tool_names)}."
+            elif name == "web_search":
                 out = ep.search(args.get("query", ""))
             elif name == "fetch_page":
                 out = ep.fetch(args.get("url", ""))

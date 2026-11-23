@@ -1,0 +1,17 @@
+# ChatGPT, instant mode. Same index and snippets as thinking mode; the agent answers
+# from titles and snippets. Evidence: zero pages were opened in 93% of instant answers,
+# and instant mode pulls about 11 results (Search Engine Land, 2026).
+description: ChatGPT instant mode (snippets only)
+web:
+  crawler_renders_js: false
+  crawler_reads_llms_txt: false
+  crawler_reads_jsonld: true
+  snippet_source: h1
+  fetcher: markdown_convert
+  fetcher_renders_js: false
+  fetcher_keeps_jsonld: false
+search:
+  results_per_query: 10
+agent:
+  max_searches: 2
+  max_fetches: 0

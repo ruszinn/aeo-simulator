@@ -195,6 +195,7 @@ def generate_pool(category: str, n: int, corpus_seed: int) -> list[Firm]:
     return firms
 
 
+COMPANY_SUFFIXES = ["Industries", "Group", "Holdings", "Co.", "Inc.", "LLC"]
 BUYER_COMPANY_WORDS = ["Acme", "Brightline", "Copperleaf", "Driftwood", "Evergreen", "Foxglove", "Juniper", "Meridian", "Oakhurst", "Westfield"]
 
 BRIEF_TEMPLATES = [
@@ -210,15 +211,18 @@ def generate_brief(category: str, rng: random.Random) -> Brief:
     region, state, city = rng.choice(list(_all_cities()))
     volume = rng.choice(cat["volume_phrases"]).format(n=rng.choice([5, 10, 20, 40]))
     linked = cat["service_cert_links"].get(service)
+    # Certifications tied to another service (hazmat registration, say) never
+    # appear as requirements for this one; general ones (ISO 9001) can.
+    general = [c for c in cat["certifications"] if c not in cat["service_cert_links"].values()]
     roll = rng.random()
     if linked and roll < 0.6:
         required = linked
-    elif roll < 0.25:
-        required = rng.choice(list(cat["certifications"]))
+    elif roll < 0.25 and general:
+        required = rng.choice(general)
     else:
         required = None
     cert_sentence = f"They have to be {cat['certifications'][required]['label']}. " if required else ""
-    company = f"{rng.choice(BUYER_COMPANY_WORDS)} {cap(buyer_type.split()[-1])}s"
+    company = f"{rng.choice(BUYER_COMPANY_WORDS)} {rng.choice(COMPANY_SUFFIXES)}"
     article = "an" if buyer_type[0] in "aeiou" else "a"
     text = rng.choice(BRIEF_TEMPLATES).format(
         article=article, buyer_type=buyer_type, city=city, state=state, provider=cat["provider_noun"],

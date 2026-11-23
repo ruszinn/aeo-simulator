@@ -1,0 +1,18 @@
+# Claude. Web search runs on Brave Search's index, and reports suggest Brave's top ten
+# results pass through as-is (approximated here by the plain ranked list). Brave's
+# crawler and Anthropic's crawlers run no JavaScript. Snippet source and fetch format
+# are undocumented; these values are assumptions.
+description: Claude (Brave index; top ten passed through)
+web:
+  crawler_renders_js: false
+  crawler_reads_llms_txt: false
+  crawler_reads_jsonld: true
+  snippet_source: meta
+  fetcher: markdown_convert
+  fetcher_renders_js: false
+  fetcher_keeps_jsonld: false
+search:
+  results_per_query: 10
+agent:
+  max_searches: 5
+  max_fetches: 5

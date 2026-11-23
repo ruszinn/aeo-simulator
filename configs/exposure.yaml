@@ -1,0 +1,27 @@
+# Forced exposure: every agent gets the same list of all 12 firms in random order
+# and searches nothing. Every firm is seen, so differences in recommendation come
+# from how the model judges the firms. Run under thinking mode (reads pages) and
+# instant mode (titles and snippets only).
+experiment:
+  name: exposure
+  category: freight_trucking
+  n_scenarios: 500
+  seed: 12
+  corpus_seed: 1
+features: {markdown: 0.5, llms_txt: 0.5, schema_jsonld: 0.5, js_rendered: 0.3, faq_page: 0.5,
+           directory_listing: 0.5, descriptive_heading: 0.5}
+agent:
+  mode: forced_exposure
+profiles:
+  - chatgpt_thinking
+  - chatgpt_instant
+models:
+  - models/baseline.yaml
+  # - models/claude-sonnet-5-5.yaml
+  # - models/gpt-6-2-sol.yaml
+  # - models/gemini-3-7-flash.yaml
+budget:
+  max_input_tokens: 30000000
+  max_output_tokens: 3000000
+max_workers: 4
+output_dir: runs

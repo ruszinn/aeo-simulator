@@ -24,13 +24,24 @@ def run_baseline(ep: Episode) -> tuple[dict, int, None, None]:
         keywords += [t.lower() for t in cert["terms"]]
         queries.append(f"{cat['provider_noun']} {cert['label']} {b.state}")
 
-    results = []
-    for q in queries[: ep.limits["max_searches"]]:
-        ep.search(q)
-        results += ep.searches[-1]["results"]
+    if ep.exposure is not None:  # forced exposure: the list arrives with the question
+        results = list(ep.exposure)
+        queries = []
+    else:
+        results = []
+        for q in queries[: ep.limits["max_searches"]]:
+            ep.search(q)
+            results += ep.searches[-1]["results"]
 
     scores: dict[str, float] = {}
     order: list[str] = []
+    # First impression from titles and snippets (all the agent has in snippet-only mode).
+    for r in results:
+        if r["firm_id"] and r["kind"] == "firm_page":
+            s = 0.5 * sum((r["title"] + " " + r["snippet"]).lower().count(k) > 0 for k in keywords)
+            if r["firm_id"] not in scores:
+                order.append(r["firm_id"])
+            scores[r["firm_id"]] = max(scores.get(r["firm_id"], 0), s)
     for url in candidate_domains(results)[: ep.limits["max_fetches"]]:
         text = ep.fetch(url).lower()
         fid = ep.web.firm_for_url(url)
@@ -51,5 +62,5 @@ def run_baseline(ep: Episode) -> tuple[dict, int, None, None]:
     ranked = sorted((fid for fid in order if scores[fid] > 0), key=lambda fid: (-scores[fid], order.index(fid)))
     firms = {f.firm_id: f for f in ep.scenario.firms}
     ep.recommend([{"company_name": firms[fid].name, "website": f"https://{firms[fid].domain}/",
-                   "reason": f"matched {scores[fid]:g} brief terms"} for fid in ranked[: ep.k]])
+                   "reason": f"matched {scores[fid]:g} brief term{'' if scores[fid] == 1 else 's'}"} for fid in ranked[: ep.k]])
     return {"input_tokens": 0, "output_tokens": 0}, len(queries) + len(order), None, None

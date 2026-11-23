@@ -7,7 +7,7 @@ Panel: one row per (episode, firm in that episode's market) with
   fetched           the agent read one of the firm's pages
   recommended       the firm made the shortlist
   top_pick          the firm was ranked first
-plus the six feature switches and the brief-fit controls.
+plus the seven feature switches and the brief-fit controls.
 
 Models: conditional logit, grouped by episode, so each firm is compared
 only with the other firms in the same scenario. Two stages:
@@ -47,11 +47,13 @@ def build_panel(episodes: list[dict]) -> pd.DataFrame:
         fetched = {f["firm_id"] for f in ep["fetches"] if f.get("firm_id")}
         via_third_party = {fid for f in ep["fetches"] for fid in f.get("listed_firms", [])}
         recs = {r["firm_id"]: r["rank"] for r in ep["recommendations"] if r.get("firm_id")}
-        key = f"{ep['model']}|{ep.get('arm')}|{ep['scenario_id']}"
+        model = ep["model"] + (f" · {ep['profile']}" if ep.get("profile") else "")
+        key = f"{model}|{ep.get('arm')}|{ep['scenario_id']}"
         for m in ep["market"]:
             fid = m["firm_id"]
             row = {
-                "episode": key, "model": ep["model"], "arm": ep.get("arm"), "scenario_id": ep["scenario_id"],
+                "episode": key, "model": model, "profile": ep.get("profile"), "arm": ep.get("arm"),
+                "scenario_id": ep["scenario_id"],
                 "firm_id": fid, "style": m["style"],
                 "surfaced": int(fid in ranks), "best_rank": ranks.get(fid, 11),
                 "seen": int(fid in ranks or fid in via_third_party), "fetched": int(fid in fetched),
@@ -123,7 +125,7 @@ def analyze(run_dir: str | Path, episodes_file: str = "episodes.jsonl", firm_fe:
     lines = [f"# Analysis of {run_dir.name}", "",
              f"Episodes: {len(eps)} logged, {sum(e.get('completed', False) for e in eps)} completed.", ""]
     for model, g in panel.groupby("model"):
-        eps_m = [e for e in eps if e["model"] == model]
+        eps_m = [e for e in eps if e["model"] + (f" · {e['profile']}" if e.get("profile") else "") == model]
         tok_in = sum(e.get("usage", {}).get("input_tokens", 0) for e in eps_m)
         tok_out = sum(e.get("usage", {}).get("output_tokens", 0) for e in eps_m)
         fit_share = g[g.recommended == 1].full_fit.mean()

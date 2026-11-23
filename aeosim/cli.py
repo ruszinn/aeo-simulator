@@ -38,6 +38,9 @@ def main(argv=None):
     a.add_argument("--file", default="episodes.jsonl")
     s = sub.add_parser("seller"); s.add_argument("config"); s.add_argument("--limit", type=int)
     s.add_argument("--allow-dirty", action="store_true")
+    rp = sub.add_parser("replay"); rp.add_argument("run_dir"); rp.add_argument("--scenario", type=int)
+    rp.add_argument("--model"); rp.add_argument("--profile"); rp.add_argument("--file", default="episodes.jsonl")
+    sm = sub.add_parser("summary"); sm.add_argument("run_dir"); sm.add_argument("--file", default="episodes.jsonl")
     pv = sub.add_parser("preview"); pv.add_argument("config"); pv.add_argument("--scenario", type=int, default=0)
     sv = sub.add_parser("serve"); sv.add_argument("config"); sv.add_argument("--scenario", type=int, default=0)
     sv.add_argument("--port", type=int, default=8000)
@@ -68,6 +71,14 @@ def _dispatch(args, load_config):
     elif args.cmd == "analyze":
         from .analysis import analyze
         print(Path(analyze(args.run_dir, args.file, firm_fe=not args.no_firm_fe)).read_text())
+    elif args.cmd in ("replay", "summary"):
+        from .analysis import load_episodes
+        from .present import pick_episode, replay, resolve_run, summary
+        run = resolve_run(args.run_dir, args.file)
+        if args.cmd == "summary":
+            print(summary(run, args.file))
+        else:
+            print(replay(pick_episode(load_episodes(run / args.file), args.scenario, args.model, args.profile)))
     elif args.cmd == "seller":
         from .seller import run_seller
         print(Path(run_seller(cfg_from(args.config), limit=args.limit)).read_text())
